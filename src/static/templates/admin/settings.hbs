@@ -1,0 +1,156 @@
+<main class="container-xl">
+    <div id="admin_token_warning" class="alert alert-warning alert-dismissible fade show d-none">
+        <button type="button" class="btn-close" data-bs-target="admin_token_warning" data-bs-dismiss="alert" aria-label="Sluiten"></button>
+        U gebruikt een platte tekst `ADMIN_TOKEN` wat onveilig is.<br>
+        Genereer een veilige Argon2 PHC string met `vaultwarden hash` of `argon2`.<br>
+        Zie: <a href="https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page#secure-the-admin_token" target="_blank" rel="noopener noreferrer">Admin pagina inschakelen - Beveilig de `ADMIN_TOKEN`</a>
+    </div>
+    <div id="config-block" class="align-items-center p-3 mb-3 bg-secondary rounded shadow">
+        <div>
+            <h6 class="text-white mb-3">Configuratie</h6>
+            <div class="small text-white mb-3">
+                <span class="font-weight-bolder">OPMERKING:</span> De instellingen hier overschrijven de omgevingsvariabelen. Na het opslaan wordt aanbevolen om te stoppen met het instellen ervan om verwarring te voorkomen.<br>
+                Dit geldt niet voor de alleen-lezen sectie, die alleen via omgevingsvariabelen kan worden ingesteld.<br>
+                Instellingen die overschreven zijn worden getoond met <span class="is-overridden-true alert-row px-1">een gele achtergrond</span>.
+            </div>
+
+            <form class="form needs-validation" id="config-form" novalidate>
+                {{#each page_data.config}}
+                {{#if groupdoc}}
+                <div class="card mb-3">
+                    <button id="b_{{group}}" type="button" class="card-header text-start btn btn-link text-decoration-none" aria-expanded="false" aria-controls="g_{{group}}" data-bs-toggle="collapse" data-bs-target="#g_{{group}}">{{groupdoc}}</button>
+                    <div id="g_{{group}}" class="card-body collapse">
+                        {{#each elements}}
+                        {{#if editable}}
+                        <div class="row my-2 align-items-center is-overridden-{{overridden}} alert-row" title="[{{name}}] {{doc.description}}">
+                            {{#case type "text" "number" "password"}}
+                            <label for="input_{{name}}" class="col-sm-3 col-form-label">{{doc.name}}</label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                <input class="form-control conf-{{type}}" id="input_{{name}}" type="{{type}}"
+                                    name="{{name}}" value="{{value}}" {{#if default}} placeholder="Standaard: {{default}}"{{/if}}>
+                                {{#case type "password"}}
+                                    <button class="btn btn-outline-secondary input-group-text" type="button" data-vw-pw-toggle="input_{{name}}">Tonen/verbergen</button>
+                                {{/case}}
+                                </div>
+                            </div>
+                            {{/case}}
+                            {{#case type "checkbox"}}
+                            <div class="col-sm-3 col-form-label">{{doc.name}}</div>
+                            <div class="col-sm-8">
+                                <div class="form-check">
+                                    <input class="form-check-input conf-{{type}}" type="checkbox" id="input_{{name}}"
+                                        name="{{name}}" {{#if value}} checked {{/if}}>
+
+                                    <label class="form-check-label" for="input_{{name}}"> Standaard: {{default}} </label>
+                                </div>
+                            </div>
+                            {{/case}}
+                        </div>
+                        {{/if}}
+                        {{/each}}
+                        {{#case group "smtp"}}
+                            <div class="row my-2 align-items-center pt-3 border-top" title="Stuur een test e-mail naar het opgegeven e-mailadres">
+                                <label for="smtp-test-email" class="col-sm-3 col-form-label">Test SMTP</label>
+                                <div class="col-sm-8 input-group">
+                                    <input class="form-control" id="smtp-test-email" type="email" placeholder="Voer test e-mail in" required spellcheck="false">
+                                    <button type="button" class="btn btn-outline-primary input-group-text" id="smtpTest">Verstuur test e-mail</button>
+                                    <div class="invalid-tooltip">Voer een geldig e-mailadres in</div>
+                                </div>
+                            </div>
+                        {{/case}}
+                    </div>
+                </div>
+                {{/if}}
+                {{/each}}
+
+                <div class="card mb-3">
+                    <button id="b_readonly" type="button" class="card-header text-start btn btn-link text-decoration-none" aria-expanded="false" aria-controls="g_readonly"
+                            data-bs-toggle="collapse" data-bs-target="#g_readonly">Alleen-Lezen Config</button>
+                    <div id="g_readonly" class="card-body collapse">
+                        <div class="small mb-3">
+                            OPMERKING: Deze opties kunnen niet in de editor worden gewijzigd omdat ze vereisen dat de server
+                            opnieuw wordt opgestart. Om ze te wijzigen moet u de juiste omgevingsvariabelen instellen bij
+                            het starten van de server. U kunt de namen van de variabelen controleren in de tooltips van elke optie.
+                        </div>
+
+                        {{#each page_data.config}}
+                        {{#each elements}}
+                        {{#unless editable}}
+                        <div class="row my-2 align-items-center alert-row" title="[{{name}}] {{doc.description}}">
+                            {{#case type "text" "number" "password"}}
+                            <label for="input_{{name}}" class="col-sm-3 col-form-label">{{doc.name}}</label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                {{!--
+                                      Also set the database_url input as password here.
+                                      If we would set it to password in config.rs it will not be character masked for the support string.
+                                      And sometimes this is more useful for providing support than just 3 asterisk.
+                                --}}
+                                {{#if (eq name "database_url")}}
+                                    <input readonly class="form-control" id="input_{{name}}" type="password" value="{{value}}" {{#if default}} placeholder="Standaard: {{default}}" {{/if}}>
+                                    <button class="btn btn-outline-secondary" type="button" data-vw-pw-toggle="input_{{name}}">Tonen/verbergen</button>
+                                {{else}}
+                                    <input readonly class="form-control" id="input_{{name}}" type="{{type}}" value="{{value}}" {{#if default}} placeholder="Standaard: {{default}}" {{/if}} spellcheck="false">
+                                    {{#case type "password"}}
+                                    <button class="btn btn-outline-secondary" type="button" data-vw-pw-toggle="input_{{name}}">Tonen/verbergen</button>
+                                    {{/case}}
+                                {{/if}}
+                                </div>
+                            </div>
+                            {{/case}}
+                            {{#case type "checkbox"}}
+                            <div class="col-sm-3 col-form-label">{{doc.name}}</div>
+                            <div class="col-sm-8">
+                                <div class="form-check align-middle">
+                                    <input disabled class="form-check-input" type="checkbox" id="input_{{name}}"
+                                        {{#if value}} checked {{/if}}>
+
+                                    <label class="form-check-label" for="input_{{name}}"> Standaard: {{default}} </label>
+                                </div>
+                            </div>
+                            {{/case}}
+                        </div>
+                        {{/unless}}
+                        {{/each}}
+                        {{/each}}
+
+                    </div>
+                </div>
+
+                {{#if page_data.can_backup}}
+                <div class="card mb-3">
+                    <button id="b_database" type="button" class="card-header text-start btn btn-link text-decoration-none" aria-expanded="false" aria-controls="g_database"
+                            data-bs-toggle="collapse" data-bs-target="#g_database">Database Back-up</button>
+                    <div id="g_database" class="card-body collapse">
+                        <div class="small mb-3">
+                            WAARSCHUWING: Deze functie maakt alleen een back-upkopie van de SQLite database.
+                            Dit omvat geen configuratie of bijlagegegevens die mogelijk
+                            ook nodig zijn om een vaultwarden instantie volledig te herstellen. Voor details over
+                            hoe volledige back-ups uit te voeren, raadpleeg de wiki pagina over
+                            <a href="https://github.com/dani-garcia/vaultwarden/wiki/Backing-up-your-vault" target="_blank" rel="noopener noreferrer">back-ups</a>.
+                        </div>
+                        <button type="button" class="btn btn-primary" id="backupDatabase">Database Back-up Maken</button>
+                    </div>
+                </div>
+                {{/if}}
+
+                <button type="submit" class="btn btn-primary">Opslaan</button>
+                <button type="button" class="btn btn-danger float-end" id="deleteConf">Standaardwaarden herstellen</button>
+            </form>
+        </div>
+    </div>
+</main>
+<style>
+    #config-block ::placeholder {
+        /* Most modern browsers support this now. */
+        color: orangered;
+    }
+
+    .is-overridden-true {
+        --bs-alert-color: #664d03;
+        --bs-alert-bg: #fff3cd;
+        --bs-alert-border-color: #ffecb5;
+    }
+</style>
+<script src="{{urlpath}}/vw_static/admin_settings.js"></script>

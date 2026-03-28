@@ -1,0 +1,247 @@
+<main class="container-xl">
+    <div id="diagnostics-block" class="my-3 p-3 rounded shadow">
+        <h6 class="border-bottom pb-2 mb-2">Diagnose</h6>
+
+        <h3>Versies</h3>
+        <div class="row">
+            <div class="col-md">
+                <dl class="row">
+                    <dt class="col-sm-5">Server Geïnstalleerd
+                        <span class="badge bg-success d-none abbr-badge" id="server-success" title="Nieuwste versie is geïnstalleerd.">Ok</span>
+                        <span class="badge bg-warning text-dark d-none abbr-badge" id="server-warning" title="Er is een update beschikbaar.">Update</span>
+                        <span class="badge bg-info text-dark d-none abbr-badge" id="server-branch" title="Dit is een vertakte versie.">Vertakt</span>
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span id="server-installed">{{page_data.current_release}}</span>
+                    </dd>
+                    <dt class="col-sm-5">Server Nieuwste
+                        <span class="badge bg-secondary d-none abbr-badge" id="server-failed" title="Kan nieuwste versie niet bepalen.">Onbekend</span>
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span id="server-latest">{{page_data.latest_release}}<span id="server-latest-commit" class="d-none">-{{page_data.latest_commit}}</span></span>
+                    </dd>
+                    {{#if page_data.web_vault_enabled}}
+                    <dt class="col-sm-5">Web Geïnstalleerd
+                        <span class="badge bg-success d-none abbr-badge" id="web-success" title="Nieuwste versie is geïnstalleerd.">Ok</span>
+                        <span class="badge bg-warning text-dark d-none abbr-badge" id="web-warning" title="Er is een update beschikbaar.">Update</span>
+                        <span class="badge bg-info text-dark d-none abbr-badge" id="web-prerelease" title="U gebruikt een pre-release versie.">Pre-Release</span>
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span id="web-installed">{{page_data.active_web_release}}</span>
+                    </dd>
+                    <dt class="col-sm-5">Web Nieuwste
+                        <span class="badge bg-secondary d-none abbr-badge" id="web-failed" title="Kan nieuwste versie niet bepalen.">Onbekend</span>
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span id="web-latest">{{page_data.latest_web_release}}</span>
+                    </dd>
+                    {{/if}}
+                    {{#unless page_data.web_vault_enabled}}
+                    <dt class="col-sm-5">Web Geïnstalleerd</dt>
+                    <dd class="col-sm-7">
+                        <span id="web-installed">Web Vault is uitgeschakeld</span>
+                    </dd>
+                    {{/unless}}
+                    <dt class="col-sm-5">Database</dt>
+                    <dd class="col-sm-7">
+                        <span><b>{{page_data.db_type}}:</b> {{page_data.db_version}}</span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <h3>Controles</h3>
+        <div class="row">
+            <div class="col-md">
+                <dl class="row">
+                    <dt class="col-sm-5">OS/Arch</dt>
+                    <dd class="col-sm-7">
+                        <span class="d-block"><b>{{ page_data.host_os }} / {{ page_data.host_arch }}</b></span>
+                    </dd>
+                    <dt class="col-sm-5">Draait binnen een container</dt>
+                    <dd class="col-sm-7">
+                    {{#if page_data.running_within_container}}
+                        <span class="d-block"><b>Ja (Basis: {{ page_data.container_base_image }})</b></span>
+                    {{/if}}
+                    {{#unless page_data.running_within_container}}
+                        <span class="d-block"><b>Nee</b></span>
+                    {{/unless}}
+                    </dd>
+                    <dt class="col-sm-5">Gebruikt config.json</dt>
+                    <dd class="col-sm-7">
+                    {{#if page_data.overrides}}
+                        <span class="d-inline"><b>Ja</b></span>
+                        <span class="badge bg-info text-dark abbr-badge" title="Omgevingsvariabelen worden overschreven door een config.json.&#013;&#010;{{page_data.overrides}}">Details</span>
+                    {{/if}}
+                    {{#unless page_data.overrides}}
+                        <span class="d-block"><b>Nee</b></span>
+                    {{/unless}}
+                    </dd>
+                    <dt class="col-sm-5">Gebruikt een reverse proxy</dt>
+                    <dd class="col-sm-7">
+                    {{#if page_data.ip_header_exists}}
+                        <span class="d-block" title="IP Header gevonden."><b>Ja</b></span>
+                    {{/if}}
+                    {{#unless page_data.ip_header_exists}}
+                        <span class="d-block" title="Geen IP Header gevonden."><b>Nee</b></span>
+                    {{/unless}}
+                    </dd>
+                    {{!-- Only show this if the IP Header Exists --}}
+                    {{#if page_data.ip_header_exists}}
+                    <dt class="col-sm-5">IP header
+                    {{#if page_data.ip_header_match}}
+                        <span class="badge bg-success abbr-badge" title="IP_HEADER configuratie lijkt geldig te zijn.">Match</span>
+                    {{/if}}
+                    {{#unless page_data.ip_header_match}}
+                        <span class="badge bg-danger abbr-badge" title="IP_HEADER configuratie lijkt ongeldig te zijn. IP's in de log kunnen ongeldig zijn. Graag corrigeren.">Geen Match</span>
+                    {{/unless}}
+                    </dt>
+                    <dd class="col-sm-7">
+                    {{#if page_data.ip_header_match}}
+                        <span class="d-block"><b>Config/Server:</b> {{ page_data.ip_header_name }}</span>
+                    {{/if}}
+                    {{#unless page_data.ip_header_match}}
+                        <span class="d-block"><b>Config:</b> {{ page_data.ip_header_config }}</span>
+                        <span class="d-block"><b>Server:</b> {{ page_data.ip_header_name }}</span>
+                    {{/unless}}
+                    </dd>
+                    {{/if}}
+                    {{!-- End if IP Header Exists --}}
+                    <dt class="col-sm-5">Internet toegang
+                    {{#if page_data.has_http_access}}
+                        <span class="badge bg-success abbr-badge" title="We hebben internet toegang!">Ok</span>
+                    {{/if}}
+                    {{#unless page_data.has_http_access}}
+                        <span class="badge bg-danger abbr-badge" title="Er lijkt geen internet toegang te zijn. Graag corrigeren.">Fout</span>
+                    {{/unless}}
+                    </dt>
+                    <dd class="col-sm-7">
+                    {{#if page_data.has_http_access}}
+                        <span class="d-block"><b>Ja</b></span>
+                    {{/if}}
+                    {{#unless page_data.has_http_access}}
+                        <span class="d-block"><b>Nee</b></span>
+                    {{/unless}}
+                    </dd>
+                    <dt class="col-sm-5">Internet toegang via een proxy</dt>
+                    <dd class="col-sm-7">
+                    {{#if page_data.uses_proxy}}
+                        <span class="d-block" title="Internet toegang gaat via een proxy (HTTPS_PROXY of HTTP_PROXY is geconfigureerd)."><b>Ja</b></span>
+                    {{/if}}
+                    {{#unless page_data.uses_proxy}}
+                        <span class="d-block" title="We hebben directe internet toegang, geen uitgaande proxy geconfigureerd."><b>Nee</b></span>
+                    {{/unless}}
+                    </dd>
+                    <dt class="col-sm-5">Websocket ingeschakeld
+                        {{#if page_data.enable_websocket}}
+                        <span class="badge bg-success d-none abbr-badge" id="websocket-success" title="Websocket verbinding werkt.">Ok</span>
+                        <span class="badge bg-danger d-none abbr-badge" id="websocket-error" title="Websocket verbindingsfout, valideer uw reverse proxy configuratie!">Fout</span>
+                        {{/if}}
+                    </dt>
+                    <dd class="col-sm-7">
+                    {{#if page_data.enable_websocket}}
+                        <span class="d-block" title="Websocket verbindingen zijn ingeschakeld (ENABLE_WEBSOCKET is true)."><b>Ja</b></span>
+                    {{/if}}
+                    {{#unless page_data.enable_websocket}}
+                        <span class="d-block" title="Websocket verbindingen zijn uitgeschakeld (ENABLE_WEBSOCKET is false)."><b>Nee</b></span>
+                    {{/unless}}
+                    </dd>
+
+                    <dt class="col-sm-5">DNS (github.com)
+                        <span class="badge bg-success d-none abbr-badge" id="dns-success" title="DNS Resolutie werkt!">Ok</span>
+                        <span class="badge bg-danger d-none abbr-badge" id="dns-warning" title="DNS Resolutie mislukt. Graag corrigeren.">Fout</span>
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span id="dns-resolved">{{page_data.dns_resolved}}</span>
+                    </dd>
+                    <dt class="col-sm-5">Datum & Tijd (Lokaal)
+                        {{#if page_data.tz_env}}
+                            <span class="badge bg-success abbr-badge" title="Geconfigureerde TZ omgevingsvariabele">{{page_data.tz_env}}</span>
+                        {{/if}}
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span><b>Server:</b> {{page_data.server_time_local}}</span>
+                    </dd>
+                    <dt class="col-sm-5">Datum & Tijd (UTC)
+                        <span class="badge bg-success d-none abbr-badge" id="time-success" title="Server en browser tijden zijn binnen 15 seconden van elkaar.">Server/Browser Ok</span>
+                        <span class="badge bg-danger d-none abbr-badge" id="time-warning" title="Server en browser tijden zijn meer dan 15 seconden van elkaar verwijderd.">Server/Browser Fout</span>
+                        <span class="badge bg-success d-none abbr-badge" id="ntp-server-success" title="Server en NTP tijden zijn binnen 15 seconden van elkaar.">Server NTP Ok</span>
+                        <span class="badge bg-danger d-none abbr-badge" id="ntp-server-warning" title="Server en NTP tijden zijn meer dan 15 seconden van elkaar verwijderd.">Server NTP Fout</span>
+                        <span class="badge bg-success d-none abbr-badge" id="ntp-browser-success" title="Browser en NTP tijden zijn binnen 15 seconden van elkaar.">Browser NTP Ok</span>
+                        <span class="badge bg-danger d-none abbr-badge" id="ntp-browser-warning" title="Browser en NTP tijden zijn meer dan 15 seconden van elkaar verwijderd.">Browser NTP Fout</span>
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span id="ntp-time" class="d-block"><b>NTP:</b> <span id="ntp-server-string">{{page_data.ntp_time}}</span></span>
+                        <span id="time-server" class="d-block"><b>Server:</b> <span id="time-server-string">{{page_data.server_time}}</span></span>
+                        <span id="time-browser" class="d-block"><b>Browser:</b> <span id="time-browser-string"></span></span>
+                    </dd>
+
+                    <dt class="col-sm-5">Domein configuratie
+                        <span class="badge bg-success d-none abbr-badge" id="domain-success" title="De domein variabele komt overeen met de browser locatie en lijkt correct geconfigureerd.">Match</span>
+                        <span class="badge bg-danger d-none abbr-badge" id="domain-warning" title="De domein variabele komt niet overeen met de browser locatie.&#013;&#010;De domein variabele lijkt niet correct geconfigureerd.&#013;&#010;Sommige functies werken mogelijk niet zoals verwacht!">Geen Match</span>
+                        <span class="badge bg-success d-none abbr-badge" id="https-success" title="Geconfigureerd om HTTPS te gebruiken">HTTPS</span>
+                        <span class="badge bg-danger d-none abbr-badge" id="https-warning" title="Niet geconfigureerd om HTTPS te gebruiken.&#013;&#010;Sommige functies werken mogelijk niet zoals verwacht!">Geen HTTPS</span>
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span id="domain-server" class="d-block"><b>Server:</b> <span id="domain-server-string">{{page_data.admin_url}}</span></span>
+                        <span id="domain-browser" class="d-block"><b>Browser:</b> <span id="domain-browser-string"></span></span>
+                    </dd>
+
+                    <dt class="col-sm-5">HTTP Respons validatie
+                        <span class="badge bg-success d-none abbr-badge" id="http-response-success" title="Alle headers en HTTP verzoek responsen lijken in orde.">Ok</span>
+                        <span class="badge bg-danger d-none abbr-badge" id="http-response-warning" title="Sommige headers of HTTP verzoek responsen retourneren ongeldige data!">Fout</span>
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span id="http-response-errors" class="d-block"></span>
+                    </dd>
+                    {{#if page_data.invalid_feature_flags}}
+                    <dt class="col-sm-5">Ongeldige Feature Flags
+                        <span class="badge bg-warning text-dark abbr-badge" id="feature-flag-warning" title="Sommige feature flags zijn ongeldig of verouderd!">Waarschuwing</span>
+                    </dt>
+                    <dd class="col-sm-7">
+                        <span id="feature-flags" class="d-block"><b>Flags:</b> <span id="feature-flags-string">{{page_data.invalid_feature_flags}}</span></span>
+                    </dd>
+                    {{/if}}
+                </dl>
+            </div>
+        </div>
+
+        <h3>Ondersteuning</h3>
+        <div class="row">
+            <div class="col-md">
+                <dl class="row">
+                    <dd class="col-sm-12">
+                        Als u ondersteuning nodig heeft, controleer eerst de volgende links voordat u een nieuw issue aanmaakt:
+                         <a href="https://vaultwarden.discourse.group/" target="_blank" rel="noreferrer noopener">Vaultwarden Forum</a>
+                         | <a href="https://github.com/dani-garcia/vaultwarden/discussions" target="_blank" rel="noreferrer noopener">Github Discussies</a>
+                    </dd>
+                </dl>
+                <dl class="row">
+                    <dd class="col-sm-12">
+                        U kunt de onderstaande knop gebruiken om een string vooraf te genereren die u kunt kopiëren/plakken op het Forum of bij het aanmaken van een nieuw issue op Github.<br>
+                        We proberen de meest gevoelige waarden standaard te verbergen in de gegenereerde ondersteuningsstring, maar controleer of er niets in staat dat u wilt verbergen!<br>
+                    </dd>
+                </dl>
+                <dl class="row">
+                    <dt class="col-sm-3">
+                        <button type="button" id="gen-support" class="btn btn-primary">Genereer Ondersteuningsstring</button>
+                        <br><br>
+                        <button type="button" id="copy-support" class="btn btn-info mb-3 d-none">Kopieer Naar Klembord</button>
+                        <div class="toast-container position-absolute float-start vw-copy-toast">
+                            <div id="toastClipboardCopy" class="toast fade hide" role="status" aria-live="polite" aria-atomic="true" data-bs-autohide="true" data-bs-delay="1500">
+                                <div class="toast-body">
+                                    Gekopieerd naar klembord!
+                                </div>
+                            </div>
+                        </div>
+                    </dt>
+                    <dd class="col-sm-9">
+                        <pre id="support-string" class="pre-scrollable d-none w-100 border p-2"></pre>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="{{urlpath}}/vw_static/admin_diagnostics.js"></script>
+<script type="application/json" id="diagnostics_json">{{to_json page_data}}</script>
